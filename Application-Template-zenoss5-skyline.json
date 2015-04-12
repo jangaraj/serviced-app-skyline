@@ -1,0 +1,261 @@
+{
+   "ID": "",
+   "Name": "Skyline",
+   "Version": "0.3",
+   "Description": "Skyline (www.jangaraj.com) - Anomaly detection also for Zenoss 5. Finally no static, hardcoded MIN/MAX thresholds or clumsy Holt-Winters algorithm.",
+   "Services": [
+   {
+       "Name": "Skyline Services",
+       "Title": "",
+       "Version": "",
+       "Command": "",
+       "Description": "Skyline Services (www.jangaraj.com)",
+       "Tags": [
+         "daemon"
+       ],
+       "ImageID": "",
+       "Instances": {
+         "Min": 0,
+         "Max": 0,
+         "Default": 0
+       },
+       "ChangeOptions": null,
+       "Launch": "auto",
+       "HostPolicy": "",
+       "Hostname": "",
+       "Privileged": false,
+       "ConfigFiles": {},
+       "Context": {},
+       "Endpoints": null,
+       "Services": [
+       {
+           "Name": "Skyline service",
+           "Title": "",
+           "Version": "1.0",
+           "Command": "python ./skyline.py -r redis://localhost:6380/ -v settings -i data/settings.json \u0026\u0026 python ./skyline.py -r redis://localhost:6380/ -v horizon -u 2025 \u0026\u0026 python ./skyline.py -r redis://localhost:6380/ -v analyzer",
+           "Description": "Skyline service (www.jangaraj.com)",
+           "Tags": [
+             "daemon"
+           ],
+           "ImageID": "klynch/skyline:latest",
+           "Instances": {
+             "Min": 1,
+             "Max": 1,
+             "Default": 1
+           },
+           "ChangeOptions": null,
+           "Launch": "auto",
+           "HostPolicy": "",
+           "Hostname": "",
+           "Privileged": false,
+           "ConfigFiles": {
+             "/usr/src/app/data/settings.json": {
+               "Filename": "/usr/src/app/data/settings.json",
+               "Owner": "root:root",
+               "Permissions": "0644",
+               "Content": "{\r\n  \"skyline:config:alerts:rules\": [\r\n    [\r\n      \".*\",\r\n      \"stdout\",\r\n      1800,\r\n      {}\r\n    ]\r\n  ],\r\n  \"skyline:config:alerts:settings\": {},\r\n  \"skyline:config:blacklist\": [\r\n    \"^skyline\\.\",\r\n    \"^example\\.statsd\\.metric$\",\r\n    \"^another\\.example\\..*\",\r\n    \"_90$\",\r\n    \"\\.lower$\",\r\n    \"\\.upper$\",\r\n    \"\\.median$\",\r\n    \"\\.count_ps$\",\r\n    \"\\.sum$\"\r\n  ],\r\n  \"skyline:config:graphite\": {\r\n    \"host\": \"\",\r\n    \"port\": 0,\r\n    \"url\": \"\"\r\n  },\r\n  \"skyline:config:whitelist\": []\r\n}\r\n"
+             }
+           },           
+           "Context": {},
+           "Endpoints": [
+             {
+               "Name": "skyline",
+               "Purpose": "export",
+               "Protocol": "tcp",
+               "PortNumber": 1500,
+               "PortTemplate": "",
+               "VirtualAddress": "",
+               "Application": "skyline",
+               "ApplicationTemplate": "",
+               "AddressConfig": {
+                 "Port": 0,
+                 "Protocol": ""
+               },
+               "VHosts": [
+                 "skyline"
+               ]
+             },
+             {
+               "Name": "skyline2025u",
+               "Purpose": "export",
+               "Protocol": "udp",
+               "PortNumber": 2025,
+               "PortTemplate": "",
+               "VirtualAddress": "",
+               "Application": "skyline2025u",
+               "ApplicationTemplate": "",
+               "AddressConfig": {
+                 "Port": 2025,
+                 "Protocol": "udp"
+               },
+               "VHosts": null
+             },             
+             {
+               "Name": "redis",
+               "Purpose": "import",
+               "Protocol": "tcp",
+               "PortNumber": 6380,
+               "PortTemplate": "",
+               "VirtualAddress": "",
+               "Application": "redis",
+               "ApplicationTemplate": "",
+               "AddressConfig": {
+                 "Port": 0,
+                 "Protocol": ""
+               },
+               "VHosts": null
+             }                              
+           ],
+           "Tasks": null,
+           "LogFilters": null,
+           "Volumes": null,
+           "LogConfigs": null,       
+           "Snapshot": {
+             "Pause": "",
+             "Resume": ""
+           },
+           "RAMCommitment": "256M",
+           "CPUCommitment": 1,
+           "Runs": null,
+           "Actions": null,
+           "HealthChecks": {
+             "Skyline python": {
+               "Script": "pgrep python \u003e/dev/null",
+               "Interval": 5,
+               "Timeout": 4
+             }                                   
+           },
+           "Prereqs": null,
+           "MonitoringProfile": {
+             "MetricConfigs": null,
+             "GraphConfigs": null,
+             "ThresholdConfigs": null
+           },
+           "MemoryLimit": 0,
+           "CPUShares": 0,
+           "PIDFile": ""
+         },   
+         {
+           "Name": "Redis for Skyline",
+           "Title": "",
+           "Version": "1.0",
+           "Command": "chmod 777 /var/log/ \u0026\u0026 /entrypoint.sh redis-server /usr/local/etc/redis.conf",
+           "Description": "Redis Server for Skyline (www.jangaraj.com)",
+           "Tags": [
+             "daemon"
+           ],
+           "ImageID": "redis:3.0.0",
+           "Instances": {
+             "Min": 1,
+             "Max": 0,
+             "Default": 1
+           },
+           "ChangeOptions": null,
+           "Launch": "auto",
+           "HostPolicy": "",
+           "Hostname": "",
+           "Privileged": false,
+           "ConfigFiles": {
+             "/usr/local/etc/redis.conf": {
+               "Filename": "/usr/local/etc/redis.conf",
+               "Owner": "root:root",
+               "Permissions": "0644",
+               "Content": "##############################################################################\r\n#\r\n# Copyright (C) Jan Garaj www.jangaraj.com 2015, all rights reserved.\r\n#\r\n##############################################################################\r\n\r\ndaemonize no\r\npidfile /var/run/redis/redis.pid\r\nport 6380\r\ntcp-backlog 511\r\nbind 127.0.0.1\r\ntimeout 0\r\ntcp-keepalive 0\r\nloglevel notice\r\nlogfile /var/log/redis.log\r\ndatabases 16\r\nsave 900 1\r\nsave 300 10\r\nsave 60 10000\r\nstop-writes-on-bgsave-error yes\r\nrdbcompression yes\r\nrdbchecksum yes\r\ndbfilename dump.rdb\r\ndir /data/\r\nslave-serve-stale-data yes\r\nslave-read-only yes\r\nrepl-diskless-sync no\r\nrepl-diskless-sync-delay 5\r\nrepl-disable-tcp-nodelay no\r\nslave-priority 100\r\nappendonly no\r\nappendfilename \"appendonly.aof\"\r\nappendfsync everysec\r\nno-appendfsync-on-rewrite no\r\nauto-aof-rewrite-percentage 100\r\nauto-aof-rewrite-min-size 64mb\r\naof-load-truncated yes\r\nlua-time-limit 5000\r\nslowlog-log-slower-than 10000\r\nslowlog-max-len 128\r\nlatency-monitor-threshold 0\r\nnotify-keyspace-events \"\"\r\nhash-max-ziplist-entries 512\r\nhash-max-ziplist-value 64\r\nlist-max-ziplist-entries 512\r\nlist-max-ziplist-value 64\r\nset-max-intset-entries 512\r\nzset-max-ziplist-entries 128\r\nzset-max-ziplist-value 64\r\nhll-sparse-max-bytes 3000\r\nactiverehashing yes\r\nclient-output-buffer-limit normal 0 0 0\r\nclient-output-buffer-limit slave 256mb 64mb 60\r\nclient-output-buffer-limit pubsub 32mb 8mb 60\r\nhz 10\r\naof-rewrite-incremental-fsync yes\r\n"
+             }
+           },
+           "Context": {
+           },
+           "Endpoints": [
+             {
+               "Name": "redisskyline6380",
+               "Purpose": "export",
+               "Protocol": "tcp",
+               "PortNumber": 6380,
+               "PortTemplate": "",
+               "VirtualAddress": "",
+               "Application": "redisskyline6380",
+               "ApplicationTemplate": "",
+               "AddressConfig": {
+                 "Port": 6380,
+                 "Protocol": "tcp"
+               },
+               "VHosts": null
+             }                 
+           ],
+           "Tasks": null,
+           "LogFilters": null,
+           "Volumes": null,
+           "LogConfigs": [
+             {
+               "Path": "/var/log/redis.log",
+               "Type": "rediskyline",
+               "Filters": null,
+               "LogTags": null
+             }
+           ],       
+           "Snapshot": {
+             "Pause": "",
+             "Resume": ""
+           },
+           "RAMCommitment": "256M",
+           "CPUCommitment": 1,
+           "Runs": null,
+           "Actions": null,
+           "HealthChecks": {
+             "Redis - set": {
+               "Script": "echo 1 | redis-cli -p 6380 -x set healthcheck \u003e /dev/null",
+               "Interval": 5,
+               "Timeout": 4
+             }                                   
+           },
+           "Prereqs": null,
+           "MonitoringProfile": {
+             "MetricConfigs": null,
+             "GraphConfigs": null,
+             "ThresholdConfigs": null
+           },
+           "MemoryLimit": 0,
+           "CPUShares": 0,
+           "PIDFile": ""
+       }       
+       ],
+       "Tasks": null,
+       "LogFilters": null,
+       "Volumes": null,
+       "LogConfigs": null,       
+       "Snapshot": {
+         "Pause": "",
+         "Resume": ""
+       },
+       "RAMCommitment": "",
+       "CPUCommitment": 0,
+       "Runs": null,
+       "Actions": null,
+       "HealthChecks": {},
+       "Prereqs": null,
+       "MonitoringProfile": {
+         "MetricConfigs": null,
+         "GraphConfigs": null,
+         "ThresholdConfigs": null
+       },
+       "MemoryLimit": 0,
+       "CPUShares": 0,
+       "PIDFile": ""
+   }   
+   ],
+   "ConfigFiles": null,
+   "ServicedVersion": {
+     "Version": "0.10.0",
+     "Date": "Mon Nov 24 17:40:37 UTC 2014",
+     "Gitbranch": "master",
+     "Gitcommit": "e80a617",
+     "Giturl": "",
+     "Buildtag": "0"
+   },
+   "TemplateVersion": {
+     "branch": "unknown",
+     "commit": "unknown",
+     "repo": "unknown",
+     "tag": "unknown"
+   }
+}
